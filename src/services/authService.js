@@ -13,10 +13,7 @@ export const login = async (username, password) => {
   });
   
   const data = await response.json();
-  if(!response.ok) {
-    throw new Error(data.detail || "Login failed");
-  }
-
+  if(!response.ok) { throw new Error(data.detail || "Login failed"); }
   return data; 
 };
 
@@ -25,3 +22,29 @@ export const update_login = async (username) => {
     method: "PATCH" 
   });
 }
+
+export const verifyToken = async (token) => {
+  const response = await fetch(`http://localhost:8000/auth/verify-token?token=${token}`);
+  return await response.json();
+};
+
+
+export const checkExistingSession = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return { isValid: false };
+
+  try {
+    const response = await fetch(`http://localhost:8000/auth/verify-token?token=${token}`);
+    const data = await response.json();
+
+    if (data.status === "valid" && data.time > 0) {
+      return { isValid: true, userData: data.user };
+    } else {
+      localStorage.removeItem('token');
+      return { isValid: false };
+    }
+  } catch (error) {
+    localStorage.removeItem('token');
+    return { isValid: false };
+  }
+};

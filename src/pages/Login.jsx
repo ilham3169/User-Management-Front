@@ -1,30 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Added this import
 import { Lock, Eye, EyeOff, Activity, User, Globe, AlertCircle, CheckCircle } from 'lucide-react';
 import { translations, languages } from '../utils/translations';
-import { login, update_login} from '../services/authService.js';
+import { checkExistingSession, login, update_login} from '../services/authService.js';
 
 export default function Login() {
+  const navigate = useNavigate(); 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [language, setLanguage] = useState('en');
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' }); // 'error' or 'success'
+  const [message, setMessage] = useState({ type: '', text: '' }); 
 
   const t = translations[language];
+
+  useEffect(() => {
+    const verify = async () => {
+      const session = await checkExistingSession();
+      if (session.isValid) {
+        navigate('/dashboard');
+      }
+    };
+    verify();
+  }, [navigate]);
 
   const handleSubmit = async () => {
     setMessage({ type: '', text: '' });
 
-    if (!username || !password) { setMessage({ type: 'error', text: t.errorEmptyFields }); return; }
-    if (username && password) {
-      try {
-        await login(username, password);
-        setMessage({ type: 'success', text: t.successLogin });
-        await update_login(username);
-      } catch (error) { setMessage({ type: 'error', text: t.errorInvalidCredentials }); }
+    if (!username || !password) { 
+      setMessage({ type: 'error', text: t.errorEmptyFields }); 
+      return; 
     }
 
+    try {
+      const response = await login(username, password); 
+      localStorage.setItem('token', response.access_token); 
+      
+      setMessage({ type: 'success', text: t.successLogin });
+      await update_login(username);
+
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+
+    } catch (error) { 
+      setMessage({ type: 'error', text: t.errorInvalidCredentials }); 
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -152,13 +174,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Forgot Password */}
-          <div className="flex items-center justify-between mb-6">
-            <a href="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              {t.forgotPassword}
-            </a>
-          </div>
-
           {/* Login Button */}
           <button
             onClick={handleSubmit}
@@ -167,7 +182,7 @@ export default function Login() {
             {t.signIn}
           </button>
 
-          {/* Message Display - Shows below Sign In button */}
+          {/* Message Display */}
           {message.text && (
             <div
               className={`mt-4 p-4 rounded-lg flex items-start gap-3 animate-fade-in ${
