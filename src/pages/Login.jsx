@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Lock, Eye, EyeOff, Activity, User, Globe } from 'lucide-react';
+import { Lock, Eye, EyeOff, Activity, User, Globe, AlertCircle, CheckCircle } from 'lucide-react';
 import { translations, languages } from '../utils/translations';
-import { login } from '../services/authService'
+import { login } from '../services/authService.js';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -9,18 +9,35 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [language, setLanguage] = useState('en');
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' }); // 'error' or 'success'
 
   const t = translations[language];
 
   const handleSubmit = async () => {
+    setMessage({ type: '', text: '' });
+
+    if (!username || !password) {
+      setMessage({ type: 'error', text: t.errorEmptyFields });
+      return;
+    }
+    // if (username === 'admin' && password === 'admin123') {
+    //   setMessage({ type: 'success', text: t.successLogin });
+    //   console.log('Login successful:', { username, language });
+    //   // Here you would navigate to dashboard
+    //   // setTimeout(() => navigate('/dashboard'), 1500);
+    // } else {
+    //   setMessage({ type: 'error', text: t.errorInvalidCredentials });
+    //   console.log('Login failed:', { username, password });
+    // }
+
     if (username && password) {
       console.log('Login attempt:', { username, password, language });
       try {
         await login(username, password);
-        alert("Login successful");
-      } catch (error) {
-        alert(error.message)
-      }
+        setMessage({ type: 'success', text: t.successLogin });
+  } catch (error) {
+        setMessage({ type: 'error', text: t.errorInvalidCredentials });
+  }
     }
   };
 
@@ -33,6 +50,7 @@ export default function Login() {
   const changeLanguage = (code) => {
     setLanguage(code);
     setShowLanguageMenu(false);
+    setMessage({ type: '', text: '' }); // Clear message when changing language
   };
 
   return (
@@ -162,6 +180,30 @@ export default function Login() {
           >
             {t.signIn}
           </button>
+
+          {/* Message Display - Shows below Sign In button */}
+          {message.text && (
+            <div
+              className={`mt-4 p-4 rounded-lg flex items-start gap-3 animate-fade-in ${
+                message.type === 'error'
+                  ? 'bg-red-50 border border-red-200'
+                  : 'bg-green-50 border border-green-200'
+              }`}
+            >
+              {message.type === 'error' ? (
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              ) : (
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+              )}
+              <p
+                className={`text-sm font-medium ${
+                  message.type === 'error' ? 'text-red-700' : 'text-green-700'
+                }`}
+              >
+                {message.text}
+              </p>
+            </div>
+          )}
 
           {/* Divider */}
           <div className="relative my-6">
