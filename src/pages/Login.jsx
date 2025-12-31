@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, Activity, User, Globe, AlertCircle, CheckCircle } from 'lucide-react';
 import { translations, languages } from '../utils/translations';
-import { login } from '../services/authService.js';
+import { login, update_login} from '../services/authService.js';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -16,29 +16,15 @@ export default function Login() {
   const handleSubmit = async () => {
     setMessage({ type: '', text: '' });
 
-    if (!username || !password) {
-      setMessage({ type: 'error', text: t.errorEmptyFields });
-      return;
-    }
-    // if (username === 'admin' && password === 'admin123') {
-    //   setMessage({ type: 'success', text: t.successLogin });
-    //   console.log('Login successful:', { username, language });
-    //   // Here you would navigate to dashboard
-    //   // setTimeout(() => navigate('/dashboard'), 1500);
-    // } else {
-    //   setMessage({ type: 'error', text: t.errorInvalidCredentials });
-    //   console.log('Login failed:', { username, password });
-    // }
-
+    if (!username || !password) { setMessage({ type: 'error', text: t.errorEmptyFields }); return; }
     if (username && password) {
-      console.log('Login attempt:', { username, password, language });
       try {
         await login(username, password);
         setMessage({ type: 'success', text: t.successLogin });
-  } catch (error) {
-        setMessage({ type: 'error', text: t.errorInvalidCredentials });
-  }
+        await update_login(username);
+      } catch (error) { setMessage({ type: 'error', text: t.errorInvalidCredentials }); }
     }
+
   };
 
   const handleKeyPress = (e) => {
@@ -50,7 +36,7 @@ export default function Login() {
   const changeLanguage = (code) => {
     setLanguage(code);
     setShowLanguageMenu(false);
-    setMessage({ type: '', text: '' }); // Clear message when changing language
+    setMessage({ type: '', text: '' }); 
   };
 
   return (

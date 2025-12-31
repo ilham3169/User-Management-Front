@@ -19,3 +19,9 @@ export const login = async (username, password) => {
 
   return data; 
 };
+
+export const update_login = async (username) => {
+  await fetch(`http://127.0.0.1:8000/auth/last_login/${username}`, { 
+    method: "PATCH" 
+  });
+}
