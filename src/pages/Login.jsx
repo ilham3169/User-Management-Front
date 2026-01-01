@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'; // Added this import
 import { Lock, Eye, EyeOff, Activity, User, Globe, AlertCircle, CheckCircle } from 'lucide-react';
 import { translations, languages } from '../utils/translations';
 import { checkExistingSession, login, update_login} from '../services/authService.js';
+import { telegram } from '../services/api.js';
 
 export default function Login() {
   const navigate = useNavigate(); 
@@ -39,6 +40,8 @@ export default function Login() {
       
       setMessage({ type: 'success', text: t.successLogin });
       await update_login(username);
+      let message = `${username} has logged in successfully\nTimestamp: ${new Date().toLocaleString()}`;
+      await telegram(message);
 
       setTimeout(() => {
         navigate('/dashboard');
