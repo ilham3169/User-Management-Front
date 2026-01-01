@@ -48,3 +48,9 @@ export const checkExistingSession = async () => {
     return { isValid: false };
   }
 };
+
+export const getRoleDescription = async (id) => {
+  const response = await fetch(`http://localhost:8000/roles/role?id=${id}`);
+  const data = await response.json();
+  return data.description;
+};
